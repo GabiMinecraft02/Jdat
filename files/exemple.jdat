@@ -1,0 +1,40 @@
+({<Fichier exemple JDAT - format de données structurées v1.0>})
+
+(n:bob l:lien t:1 {
+  nom: bob
+  adresse mail: bob@exemple.com
+  mot de passe: 12345ABCDE._.
+})
+
+(n:code l:python t:2{
+
+from flask import Flask, render_template, send_from_directory
+import os
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory('.', 'robots.txt')
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
+})
+
+(n:config l:serveur t:1 {
+
+  host: 0.0.0.0
+  port: 5000
+  debug: false
+  version: 1.0
+
+})
+
+(n:test l:t t:1 {
+  test: 1212
+})

@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+{% block title %}JDAT — {{ 'Télécharger' if lang == 'fr' else 'Download' }}{% endblock %}
+
+{% block head %}
+<style>
+  .download-page { padding: 4rem 0 8rem; }
+
+  .page-title {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .page-lead {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 3rem;
+    max-width: 600px;
+  }
+
+  /* ── DOWNLOAD CARDS ───────────────────────────────────── */
+  .dl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+
+  .dl-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s, transform 0.25s;
+  }
+  .dl-card:hover { border-color: rgba(0,229,204,0.5); transform: translateY(-3px); }
+
+  .dl-card.featured {
+    border-color: rgba(0,229,204,0.4);
+    background: linear-gradient(135deg, var(--bg2), rgba(0,229,204,0.04));
+  }
+  .dl-card.featured::before {
+    content: '★ {{ "Recommandé" if lang == "fr" else "Recommended" }}';
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    background: rgba(0,229,204,0.1);
+    border: 1px solid rgba(0,229,204,0.3);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .dl-os {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  .dl-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+  }
+  .dl-version {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 1.2rem;
+  }
+  .dl-files {
+    list-style: none;
+    margin-bottom: 1.5rem;
+  }
+  .dl-files li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  .dl-files li:last-child { border-bottom: none; }
+  .dl-files a {
+    color: var(--cyan);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dl-files a:hover { color: var(--green); }
+  .dl-size { color: var(--text-dim); font-size: 0.75rem; }
+
+  /* ── INSTALL STEPS ────────────────────────────────────── */
+  .install-section { margin-bottom: 4rem; }
+
+  .install-section h2 {
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .step-num {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(0,229,204,0.1);
+    border: 1px solid rgba(0,229,204,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cyan);
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-content h4 {
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+  .step-content p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── SOURCE FILES ─────────────────────────────────────── */
+  .source-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+  }
+  .source-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--bg3);
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .source-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .source-table td:first-child { color: var(--cyan); }
+  .source-table td:last-child { color: var(--text-dim); font-size: 0.8rem; }
+  .source-table tr:last-child td { border-bottom: none; }
+  .source-table a { color: var(--cyan); text-decoration: none; }
+  .source-table a:hover { color: var(--green); }
+
+  .section-sep {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="download-page">
+  <div class="container">
+    <h1 class="page-title fade-up">{{ 'Télécharger JDAT' if lang == 'fr' else 'Download JDAT' }}</h1>
+    <p class="page-lead fade-up delay-1">
+      {% if lang == 'fr' %}
+        Le shell interactif <code style="color:var(--cyan)">jdat-shell</code> et les sources Python. Compilé pour Linux x86_64.
+      {% else %}
+        The interactive shell <code style="color:var(--cyan)">jdat-shell</code> and Python sources. Compiled for Linux x86_64.
+      {% endif %}
+    </p>
+
+    <!-- DOWNLOAD CARDS -->
+    <div class="dl-grid">
+      <!-- Binaire Linux -->
+      <div class="dl-card featured fade-up delay-1">
+        <div class="dl-os">🐧</div>
+        <div class="dl-name">jdat-shell</div>
+        <div class="dl-version">v1.1 — Linux x86_64 — {{ 'Binaire compilé' if lang == 'fr' else 'Compiled binary' }}</div>
+        <ul class="dl-files">
+          <li>
+            <a href="/files/jdat-shell">⬇ jdat-shell</a>
+            <span class="dl-size">~8 MB</span>
+          </li>
+        </ul>
+        <div style="font-size:0.75rem;color:var(--text-dim)">
+          {% if lang == 'fr' %}Aucune dépendance — prêt à l'emploi{% else %}No dependencies — ready to use{% endif %}
+        </div>
+      </div>
+
+      <!-- Sources Python -->
+      <div class="dl-card fade-up delay-2">
+        <div class="dl-os">🐍</div>
+        <div class="dl-name">{{ 'Sources Python' if lang == 'fr' else 'Python sources' }}</div>
+        <div class="dl-version">v1.1 — Python 3.10+</div>
+        <ul class="dl-files">
+          <li><a href="/files/shell.py">⬇ shell.py</a><span class="dl-size">{{ 'shell interactif' if lang == 'fr' else 'interactive shell' }}</span></li>
+          <li><a href="/files/jdat.py">⬇ jdat.py</a><span class="dl-size">{{ 'parser + module' if lang == 'fr' else 'parser + module' }}</span></li>
+          <li><a href="/files/crypto.py">⬇ crypto.py</a><span class="dl-size">AES-256-GCM</span></li>
+          <li><a href="/files/build.sh">⬇ build.sh</a><span class="dl-size">{{ 'script de compilation' if lang == 'fr' else 'build script' }}</span></li>
+        </ul>
+      </div>
+
+      <!-- Exemple -->
+      <div class="dl-card fade-up delay-3">
+        <div class="dl-os">📄</div>
+        <div class="dl-name">{{ 'Fichier exemple' if lang == 'fr' else 'Example file' }}</div>
+        <div class="dl-version">exemple.jdat</div>
+        <ul class="dl-files">
+          <li><a href="/files/exemple.jdat">⬇ exemple.jdat</a><span class="dl-size">{{ 'démo' if lang == 'fr' else 'demo' }}</span></li>
+        </ul>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:0.5rem">
+          {% if lang == 'fr' %}Contient 3 blocs d'exemple pour tester{% else %}Contains 3 example blocks to test with{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-sep">
+
+    <!-- INSTALL STEPS -->
+    <div class="install-section">
+      <h2>{{ '⚡ Installation rapide (binaire)' if lang == 'fr' else '⚡ Quick install (binary)' }}</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>{{ 'Télécharge le binaire' if lang == 'fr' else 'Download the binary' }}</h4>
+            <div class="code-block">
+              <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div></div>
+              <pre><code><span class="c-green">$</span> wget https://ton-site.onrender.com/files/jdat-shell</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>{{ 'Rends-le exécutable et installe-le' if lang == 'fr' else 'Make it executable and install it' }}</h4>
+            <div class="code-block">
+              <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div></div>
+              <pre><code><span class="c-green">$</span> chmod +x jdat-shell
+<span class="c-green">$</span> sudo mv jdat-shell /usr/local/bin/</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>{{ 'Lance !' if lang == 'fr' else 'Launch!' }}</h4>
+            <div class="code-block">
+              <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div></div>
+              <pre><code><span class="c-green">$</span> jdat-shell
+<span class="c-green">$</span> jdat-shell mon_fichier.jdat</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-sep">
+
+    <!-- BUILD FROM SOURCE -->
+    <div class="install-section">
+      <h2>🔧 {{ 'Compiler depuis les sources' if lang == 'fr' else 'Build from sources' }}</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>{{ 'Télécharge tous les fichiers dans le même dossier' if lang == 'fr' else 'Download all files in the same folder' }}</h4>
+            <p>shell.py &nbsp;·&nbsp; jdat.py &nbsp;·&nbsp; crypto.py &nbsp;·&nbsp; build.sh</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>{{ 'Lance le script de build' if lang == 'fr' else 'Run the build script' }}</h4>
+            <div class="code-block">
+              <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div></div>
+              <pre><code><span class="c-green">$</span> bash build.sh</code></pre>
+            </div>
+            <p style="color:var(--text-dim);font-size:0.78rem">
+              {% if lang == 'fr' %}Le script installe Python 3.13, cryptography, PyInstaller, compile et installe dans /usr/local/bin automatiquement.
+              {% else %}The script installs Python 3.13, cryptography, PyInstaller, compiles and installs to /usr/local/bin automatically.{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-sep">
+
+    <!-- SOURCE FILES TABLE -->
+    <h2 style="font-size:1.1rem;color:var(--text);margin-bottom:1.5rem;letter-spacing:0.05em">
+      {{ '📁 Tous les fichiers' if lang == 'fr' else '📁 All files' }}
+    </h2>
+    <div class="code-block" style="margin:0">
+      <div class="code-block-header">
+        <div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div>
+      </div>
+      <table class="source-table">
+        <tr>
+          <th>{{ 'Fichier' if lang == 'fr' else 'File' }}</th>
+          <th>{{ 'Description' if lang == 'fr' else 'Description' }}</th>
+          <th>{{ 'Télécharger' if lang == 'fr' else 'Download' }}</th>
+        </tr>
+        <tr>
+          <td>jdat-shell</td>
+          <td>{{ 'Binaire Linux x86_64 — shell interactif compilé' if lang == 'fr' else 'Linux x86_64 binary — compiled interactive shell' }}</td>
+          <td><a href="/files/jdat-shell">⬇ {{ 'Télécharger' if lang == 'fr' else 'Download' }}</a></td>
+        </tr>
+        <tr>
+          <td>shell.py</td>
+          <td>{{ 'Shell interactif (source Python)' if lang == 'fr' else 'Interactive shell (Python source)' }}</td>
+          <td><a href="/files/shell.py">⬇ {{ 'Télécharger' if lang == 'fr' else 'Download' }}</a></td>
+        </tr>
+        <tr>
+          <td>jdat.py</td>
+          <td>{{ 'Parser + module Python importable' if lang == 'fr' else 'Parser + importable Python module' }}</td>
+          <td><a href="/files/jdat.py">⬇ {{ 'Télécharger' if lang == 'fr' else 'Download' }}</a></td>
+        </tr>
+        <tr>
+          <td>crypto.py</td>
+          <td>{{ 'Module de chiffrement AES-256-GCM' if lang == 'fr' else 'AES-256-GCM encryption module' }}</td>
+          <td><a href="/files/crypto.py">⬇ {{ 'Télécharger' if lang == 'fr' else 'Download' }}</a></td>
+        </tr>
+        <tr>
+          <td>build.sh</td>
+          <td>{{ 'Script de compilation automatique' if lang == 'fr' else 'Automatic build script' }}</td>
+          <td><a href="/files/build.sh">⬇ {{ 'Télécharger' if lang == 'fr' else 'Download' }}</a></td>
+        </tr>
+        <tr>
+          <td>exemple.jdat</td>
+          <td>{{ 'Fichier de démonstration' if lang == 'fr' else 'Demo file' }}</td>
+          <td><a href="/files/exemple.jdat">⬇ {{ 'Télécharger' if lang == 'fr' else 'Download' }}</a></td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

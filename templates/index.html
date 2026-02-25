@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}JDAT — {{ 'Format de données structurées' if lang == 'fr' else 'Structured Data Format' }}{% endblock %}
+
+{% block head %}
+<style>
+  /* ── HERO ─────────────────────────────────────────────── */
+  .hero {
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 4rem 0;
+  }
+
+  /* grille de fond */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,204,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,204,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  }
+
+  /* halo central */
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,204,0.06) 0%, transparent 70%);
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--cyan);
+    border: 1px solid rgba(0,229,204,0.3);
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    animation: glow 3s ease-in-out infinite;
+    color: var(--cyan);
+  }
+
+  .hero-title .dot { color: var(--green); }
+
+  .hero-subtitle {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: var(--text-dim);
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3.5rem;
+  }
+
+  /* terminal d'exemple */
+  .hero-terminal {
+    max-width: 680px;
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  .terminal-window {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,229,204,0.05);
+  }
+
+  .terminal-bar {
+    background: var(--bg3);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .terminal-body {
+    padding: 1.5rem;
+    font-size: 0.82rem;
+    line-height: 2;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--cyan);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+
+  /* ── FEATURES ─────────────────────────────────────────── */
+  .features { padding: 6rem 0; }
+
+  .section-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-heading {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.8rem;
+    transition: border-color 0.25s, transform 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .feature-card:hover { border-color: rgba(0,229,204,0.4); transform: translateY(-3px); }
+  .feature-card:hover::before { transform: scaleX(1); }
+
+  .feature-icon {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .feature-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .feature-desc {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  /* ── EXAMPLE SYNTAX ───────────────────────────────────── */
+  .syntax-section { padding: 4rem 0 6rem; }
+
+  .syntax-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .syntax-grid { grid-template-columns: 1fr; }
+  }
+
+  .syntax-explain { padding-top: 1rem; }
+  .syntax-explain h3 {
+    color: var(--cyan);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+  .syntax-explain p {
+    color: var(--text-dim);
+    font-size: 0.83rem;
+    line-height: 1.7;
+    margin-bottom: 1.2rem;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin: 2px;
+    font-weight: 700;
+  }
+  .tag-cyan  { background: rgba(0,229,204,0.15); color: var(--cyan); border: 1px solid rgba(0,229,204,0.3); }
+  .tag-green { background: rgba(57,255,110,0.1);  color: var(--green); border: 1px solid rgba(57,255,110,0.3); }
+
+  /* ── CTA ──────────────────────────────────────────────── */
+  .cta-section {
+    padding: 5rem 0;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+  .cta-section h2 {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .cta-section p {
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-tag fade-up">
+      {{ 'Format de données · v1.0' if lang == 'fr' else 'Data Format · v1.0' }}
+    </div>
+    <h1 class="hero-title fade-up delay-1">JDAT<span class="dot">.</span></h1>
+    <p class="hero-subtitle fade-up delay-2">
+      {% if lang == 'fr' %}
+        Un format de données structurées <strong style="color:var(--cyan)">lisible, modifiable et chiffrable</strong> par bloc avec AES-256. Comme JSON, mais fait pour les humains et les secrets.
+      {% else %}
+        A structured data format that is <strong style="color:var(--cyan)">readable, editable and encryptable</strong> per-block with AES-256. Like JSON, but built for humans and secrets.
+      {% endif %}
+    </p>
+    <div class="hero-actions fade-up delay-3">
+      <a href="{{ '/download' if lang == 'fr' else '/en/download' }}" class="btn btn-primary">
+        ⬇ {{ 'Télécharger' if lang == 'fr' else 'Download' }}
+      </a>
+      <a href="{{ '/docs' if lang == 'fr' else '/en/docs' }}" class="btn btn-outline">
+        {{ 'Lire la doc' if lang == 'fr' else 'Read the docs' }} →
+      </a>
+    </div>
+
+    <!-- Terminal exemple -->
+    <div class="hero-terminal fade-up delay-4">
+      <div class="terminal-window">
+        <div class="terminal-bar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span style="margin-left:8px;font-size:0.75rem;color:var(--text-dim)">exemple.jdat</span>
+        </div>
+        <div class="terminal-body">
+<span class="c-grey">({&lt;{{ 'commentaire' if lang == 'fr' else 'comment' }}&gt;})</span>
+
+<span class="c-cyan">(</span><span class="c-green">n</span>:<span class="c-yellow">bob</span> <span class="c-green">l</span>:<span class="c-yellow">lien</span> <span class="c-green">t</span>:<span class="c-yellow">1</span> <span class="c-cyan">{</span>
+  <span class="c-text">nom</span>: <span class="c-green">bob</span>
+  <span class="c-text">adresse mail</span>: <span class="c-green">bob@exemple.com</span>
+  <span class="c-text">mot de passe</span>: <span class="c-red">••••••••••</span>
+<span class="c-cyan">})</span>
+
+<span class="c-cyan">(</span><span class="c-green">n</span>:<span class="c-yellow">config</span> <span class="c-green">l</span>:<span class="c-yellow">serveur</span> <span class="c-green">t</span>:<span class="c-yellow">1</span> <span class="c-cyan">{</span>
+  <span class="c-text">host</span>: <span class="c-green">0.0.0.0</span>
+  <span class="c-text">port</span>: <span class="c-green">5000</span>
+<span class="c-cyan">})</span><span class="cursor"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="container">
+    <p class="section-title">{{ 'Pourquoi JDAT ?' if lang == 'fr' else 'Why JDAT?' }}</p>
+    <h2 class="section-heading">{{ 'Simple. Lisible. Sécurisé.' if lang == 'fr' else 'Simple. Readable. Secure.' }}</h2>
+    <div class="features-grid">
+
+      <div class="feature-card fade-up delay-1">
+        <div class="feature-icon">📦</div>
+        <div class="feature-title">{{ 'Format texte brut' if lang == 'fr' else 'Plain text format' }}</div>
+        <p class="feature-desc">
+          {% if lang == 'fr' %}Lisible dans n'importe quel éditeur. Pas de binaire, pas de magie. Juste du texte organisé en blocs <code style="color:var(--cyan)">()</code> et <code style="color:var(--cyan)">{}</code>.
+          {% else %}Readable in any editor. No binary, no magic. Just text organized in <code style="color:var(--cyan)">()</code> and <code style="color:var(--cyan)">{}</code> blocks.{% endif %}
+        </p>
+      </div>
+
+      <div class="feature-card fade-up delay-2">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">{{ 'Chiffrement par bloc' if lang == 'fr' else 'Per-block encryption' }}</div>
+        <p class="feature-desc">
+          {% if lang == 'fr' %}Chaque bloc peut être chiffré indépendamment avec AES-256-GCM. Seuls les blocs que tu veux rester secrets sont protégés.
+          {% else %}Each block can be encrypted independently with AES-256-GCM. Only the blocks you want kept secret are protected.{% endif %}
+        </p>
+      </div>
+
+      <div class="feature-card fade-up delay-3">
+        <div class="feature-icon">🐍</div>
+        <div class="feature-title">{{ 'Module Python' if lang == 'fr' else 'Python module' }}</div>
+        <p class="feature-desc">
+          {% if lang == 'fr' %}Importe <code style="color:var(--cyan)">jdat.py</code> dans ton projet. <code style="color:var(--green)">get_by_link()</code>, <code style="color:var(--green)">set()</code>, <code style="color:var(--green)">save()</code> — API minimaliste.
+          {% else %}Import <code style="color:var(--cyan)">jdat.py</code> in your project. <code style="color:var(--green)">get_by_link()</code>, <code style="color:var(--green)">set()</code>, <code style="color:var(--green)">save()</code> — minimal API.{% endif %}
+        </p>
+      </div>
+
+      <div class="feature-card fade-up delay-4">
+        <div class="feature-icon">💻</div>
+        <div class="feature-title">Shell interactif</div>
+        <p class="feature-desc">
+          {% if lang == 'fr' %}Un shell terminal complet avec <code style="color:var(--cyan)">goto</code>, <code style="color:var(--cyan)">enc</code>, <code style="color:var(--cyan)">dec</code>, <code style="color:var(--cyan)">edit</code>… Comme naviguer dans un système de fichiers.
+          {% else %}A full terminal shell with <code style="color:var(--cyan)">goto</code>, <code style="color:var(--cyan)">enc</code>, <code style="color:var(--cyan)">dec</code>, <code style="color:var(--cyan)">edit</code>… Like navigating a filesystem.{% endif %}
+        </p>
+      </div>
+
+      <div class="feature-card fade-up delay-1">
+        <div class="feature-icon">🗂</div>
+        <div class="feature-title">{{ '2 types de blocs' if lang == 'fr' else '2 block types' }}</div>
+        <p class="feature-desc">
+          {% if lang == 'fr' %}<span class="tag tag-cyan">t:1</span> données structurées clé/valeur &nbsp;|&nbsp; <span class="tag tag-green">t:2</span> stockage de texte ou code brut.
+          {% else %}<span class="tag tag-cyan">t:1</span> structured key/value data &nbsp;|&nbsp; <span class="tag tag-green">t:2</span> raw text or code storage.{% endif %}
+        </p>
+      </div>
+
+      <div class="feature-card fade-up delay-2">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">{{ 'Multi-langage' if lang == 'fr' else 'Multi-language' }}</div>
+        <p class="feature-desc">
+          {% if lang == 'fr' %}Format texte universel. Parseable depuis Python, JavaScript, C, Java… ou n'importe quel langage capable de lire un fichier.
+          {% else %}Universal text format. Parseable from Python, JavaScript, C, Java… or any language that can read a file.{% endif %}
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SYNTAX EXAMPLE -->
+<section class="syntax-section">
+  <div class="container">
+    <div class="syntax-grid">
+      <div>
+        <p class="section-title">{{ 'Syntaxe' if lang == 'fr' else 'Syntax' }}</p>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <span>exemple.jdat</span>
+          </div>
+          <pre><code><span class="c-grey">({&lt;{{ 'ceci est un commentaire' if lang == 'fr' else 'this is a comment' }}&gt;})</span>
+
+<span class="c-cyan">(</span><span class="c-green">n</span>:<span class="c-yellow">bob</span> <span class="c-green">l</span>:<span class="c-yellow">lien</span> <span class="c-green">t</span>:<span class="c-yellow">1</span> <span class="c-cyan">{</span>
+  nom: bob
+  adresse mail: bob@exemple.com
+  mot de passe: 12345ABCDE._.
+<span class="c-cyan">})</span>
+
+<span class="c-cyan">(</span><span class="c-green">n</span>:<span class="c-yellow">code</span> <span class="c-green">l</span>:<span class="c-yellow">python</span> <span class="c-green">t</span>:<span class="c-yellow">2</span><span class="c-cyan">{</span>
+  from flask import Flask
+  app = Flask(__name__)
+  ...
+<span class="c-cyan">})</span></code></pre>
+        </div>
+      </div>
+      <div class="syntax-explain">
+        <h3>n: &mdash; {{ 'nom' if lang == 'fr' else 'name' }}</h3>
+        <p>{{ 'Identifiant lisible du bloc.' if lang == 'fr' else 'Human-readable block identifier.' }}</p>
+        <h3>l: &mdash; link</h3>
+        <p>{{ 'Lien unique pour accéder au bloc par code ou dans le shell.' if lang == 'fr' else 'Unique link to access the block by code or in the shell.' }}</p>
+        <h3>t: &mdash; type</h3>
+        <p>
+          <span class="tag tag-cyan">t:1</span> {{ 'Données structurées clé: valeur' if lang == 'fr' else 'Structured key: value data' }}<br>
+          <span class="tag tag-green">t:2</span> {{ 'Texte ou code brut verbatim' if lang == 'fr' else 'Raw verbatim text or code' }}
+        </p>
+        <br>
+        <a href="{{ '/docs' if lang == 'fr' else '/en/docs' }}" class="btn btn-outline" style="margin-top:0.5rem">
+          {{ 'Documentation complète' if lang == 'fr' else 'Full documentation' }} →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>{{ 'Prêt à essayer ?' if lang == 'fr' else 'Ready to try it?' }}</h2>
+    <p>{{ 'Télécharge jdat-shell et commence en 30 secondes.' if lang == 'fr' else 'Download jdat-shell and get started in 30 seconds.' }}</p>
+    <a href="{{ '/download' if lang == 'fr' else '/en/download' }}" class="btn btn-primary">
+      ⬇ {{ 'Télécharger jdat-shell' if lang == 'fr' else 'Download jdat-shell' }}
+    </a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+{% block title %}JDAT — {{ 'Documentation' if lang == 'fr' else 'Documentation' }}{% endblock %}
+
+{% block head %}
+<style>
+  .docs-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── SIDEBAR ──────────────────────────────────────────── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    margin-bottom: 2rem;
+  }
+
+  .sidebar-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-link {
+    display: block;
+    padding: 5px 10px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.83rem;
+    border-radius: 4px;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+  .sidebar-link:hover,
+  .sidebar-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,204,0.07);
+  }
+  .sidebar-link.active { border-left: 2px solid var(--cyan); padding-left: 8px; }
+
+  /* ── CONTENT ──────────────────────────────────────────── */
+  .docs-content {
+    padding: 3rem 3rem 6rem;
+    max-width: 820px;
+  }
+
+  .docs-content h1 {
+    font-size: 2rem;
+    color: var(--cyan);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .docs-content .lead {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .docs-content h2 {
+    font-size: 1.2rem;
+    color: var(--text);
+    margin: 3rem 0 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .docs-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+
+  .docs-content h3 {
+    font-size: 0.95rem;
+    color: var(--cyan);
+    margin: 2rem 0 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .docs-content p {
+    color: var(--text-dim);
+    font-size: 0.875rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+
+  .docs-content code {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 0.82rem;
+    color: var(--cyan);
+    font-family: var(--font-mono);
+  }
+
+  /* table des paramètres */
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.83rem;
+  }
+  .param-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--bg3);
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .param-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  .param-table td:first-child { color: var(--cyan); font-weight: 700; }
+  .param-table td:last-child  { color: var(--text-dim); }
+  .param-table tr:last-child td { border-bottom: none; }
+
+  /* commandes shell */
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+  }
+  .cmd-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.9rem;
+    transition: border-color 0.2s;
+  }
+  .cmd-card:hover { border-color: rgba(0,229,204,0.4); }
+  .cmd-name { color: var(--cyan); font-weight: 700; font-size: 0.85rem; margin-bottom: 0.25rem; }
+  .cmd-desc { color: var(--text-dim); font-size: 0.78rem; line-height: 1.5; }
+
+  /* note box */
+  .note {
+    background: rgba(0,229,204,0.06);
+    border: 1px solid rgba(0,229,204,0.25);
+    border-left: 3px solid var(--cyan);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    margin: 1.5rem 0;
+    font-size: 0.83rem;
+    color: var(--text-dim);
+  }
+  .note strong { color: var(--cyan); }
+
+  @media (max-width: 900px) {
+    .docs-layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .docs-content { padding: 2rem 1rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">{{ 'Introduction' if lang == 'fr' else 'Introduction' }}</div>
+      <a href="#intro" class="sidebar-link active">{{ 'Qu\'est-ce que JDAT ?' if lang == 'fr' else 'What is JDAT?' }}</a>
+      <a href="#syntax" class="sidebar-link">{{ 'Syntaxe de base' if lang == 'fr' else 'Basic syntax' }}</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">{{ 'Format' if lang == 'fr' else 'Format' }}</div>
+      <a href="#types" class="sidebar-link">{{ 'Types de blocs' if lang == 'fr' else 'Block types' }}</a>
+      <a href="#header" class="sidebar-link">{{ 'En-tête du bloc' if lang == 'fr' else 'Block header' }}</a>
+      <a href="#comments" class="sidebar-link">{{ 'Commentaires' if lang == 'fr' else 'Comments' }}</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Shell</div>
+      <a href="#shell-install" class="sidebar-link">{{ 'Installation' if lang == 'fr' else 'Installation' }}</a>
+      <a href="#shell-commands" class="sidebar-link">{{ 'Commandes' if lang == 'fr' else 'Commands' }}</a>
+      <a href="#shell-nav" class="sidebar-link">{{ 'Navigation (goto)' if lang == 'fr' else 'Navigation (goto)' }}</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">{{ 'Chiffrement' if lang == 'fr' else 'Encryption' }}</div>
+      <a href="#crypto" class="sidebar-link">AES-256-GCM</a>
+      <a href="#crypto-usage" class="sidebar-link">{{ 'Utilisation' if lang == 'fr' else 'Usage' }}</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Python API</div>
+      <a href="#python-load" class="sidebar-link">load / save</a>
+      <a href="#python-read" class="sidebar-link">{{ 'Lecture' if lang == 'fr' else 'Reading' }}</a>
+      <a href="#python-write" class="sidebar-link">{{ 'Écriture' if lang == 'fr' else 'Writing' }}</a>
+      <a href="#python-crypto" class="sidebar-link">{{ 'Chiffrement' if lang == 'fr' else 'Encryption' }}</a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="docs-content">
+    <h1>Documentation JDAT</h1>
+    <p class="lead">
+      {% if lang == 'fr' %}
+        Référence complète du format de données JDAT, du shell interactif et du module Python.
+      {% else %}
+        Complete reference for the JDAT data format, interactive shell, and Python module.
+      {% endif %}
+    </p>
+
+    <!-- INTRO -->
+    <h2 id="intro">{{ 'Qu\'est-ce que JDAT ?' if lang == 'fr' else 'What is JDAT?' }}</h2>
+    <p>
+      {% if lang == 'fr' %}
+        JDAT est un <strong style="color:var(--text)">format de stockage de données</strong>, pas un langage de programmation. Il permet d'organiser des données en blocs nommés, lisibles dans n'importe quel éditeur de texte et chiffrables indépendamment avec AES-256-GCM.
+      {% else %}
+        JDAT is a <strong style="color:var(--text)">data storage format</strong>, not a programming language. It organizes data in named blocks, readable in any text editor and independently encryptable with AES-256-GCM.
+      {% endif %}
+    </p>
+    <div class="note">
+      <strong>{{ 'Important :' if lang == 'fr' else 'Important:' }}</strong>
+      {% if lang == 'fr' %}
+        JDAT ne contient aucun code exécutable. Tout est données — y compris le stockage de code source (t:2), qui est traité comme du texte brut.
+      {% else %}
+        JDAT contains no executable code. Everything is data — including source code storage (t:2), which is treated as plain text.
+      {% endif %}
+    </div>
+
+    <!-- SYNTAX -->
+    <h2 id="syntax">{{ 'Syntaxe de base' if lang == 'fr' else 'Basic syntax' }}</h2>
+    <div class="code-block">
+      <div class="code-block-header">
+        <div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div>
+        <span>structure.jdat</span>
+      </div>
+      <pre><code><span class="c-grey">({&lt;commentaire&gt;})</span>
+
+<span class="c-cyan">(</span><span class="c-green">n</span>:<span class="c-yellow">NOM</span> <span class="c-green">l</span>:<span class="c-yellow">LIEN</span> <span class="c-green">t</span>:<span class="c-yellow">TYPE</span> <span class="c-cyan">{</span>
+  clé: valeur
+  clé2: valeur2
+<span class="c-cyan">})</span></code></pre>
+    </div>
+
+    <!-- HEADER -->
+    <h2 id="header">{{ 'En-tête du bloc' if lang == 'fr' else 'Block header' }}</h2>
+    <table class="param-table">
+      <tr><th>{{ 'Paramètre' if lang == 'fr' else 'Parameter' }}</th><th>{{ 'Nom' if lang == 'fr' else 'Name' }}</th><th>{{ 'Description' if lang == 'fr' else 'Description' }}</th></tr>
+      <tr>
+        <td>n:</td>
+        <td>{{ 'nom' if lang == 'fr' else 'name' }}</td>
+        <td>{{ 'Nom lisible du bloc. Peut contenir des espaces.' if lang == 'fr' else 'Human-readable block name. Can contain spaces.' }}</td>
+      </tr>
+      <tr>
+        <td>l:</td>
+        <td>link</td>
+        <td>{{ 'Identifiant unique sans espace. Utilisé pour accéder au bloc par code ou shell.' if lang == 'fr' else 'Unique identifier without spaces. Used to access the block by code or shell.' }}</td>
+      </tr>
+      <tr>
+        <td>t:</td>
+        <td>type</td>
+        <td><code>1</code> = {{ 'données clé/valeur' if lang == 'fr' else 'key/value data' }} &nbsp;|&nbsp; <code>2</code> = {{ 'texte/code brut' if lang == 'fr' else 'raw text/code' }}</td>
+      </tr>
+    </table>
+
+    <!-- TYPES -->
+    <h2 id="types">{{ 'Types de blocs' if lang == 'fr' else 'Block types' }}</h2>
+    <h3>t:1 — {{ 'Données structurées' if lang == 'fr' else 'Structured data' }}</h3>
+    <p>{{ 'Chaque ligne est une paire clé: valeur. Les clés peuvent contenir des espaces.' if lang == 'fr' else 'Each line is a key: value pair. Keys can contain spaces.' }}</p>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>t:1</span></div>
+      <pre><code><span class="c-cyan">(</span><span class="c-green">n</span>:<span class="c-yellow">utilisateur</span> <span class="c-green">l</span>:<span class="c-yellow">user1</span> <span class="c-green">t</span>:<span class="c-yellow">1</span> <span class="c-cyan">{</span>
+  nom: Alice
+  adresse mail: alice@exemple.com
+  rôle: admin
+<span class="c-cyan">})</span></code></pre>
+    </div>
+
+    <h3>t:2 — {{ 'Texte / code brut' if lang == 'fr' else 'Raw text / code' }}</h3>
+    <p>{{ 'Le contenu est stocké tel quel, sans interprétation. Idéal pour stocker du code source, des scripts, ou tout texte multilignes.' if lang == 'fr' else 'Content is stored as-is, without interpretation. Ideal for storing source code, scripts, or any multiline text.' }}</p>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>t:2</span></div>
+      <pre><code><span class="c-cyan">(</span><span class="c-green">n</span>:<span class="c-yellow">script</span> <span class="c-green">l</span>:<span class="c-yellow">deploy</span> <span class="c-green">t</span>:<span class="c-yellow">2</span><span class="c-cyan">{</span>
+#!/bin/bash
+echo "Déploiement..."
+git pull origin main
+systemctl restart app
+<span class="c-cyan">})</span></code></pre>
+    </div>
+
+    <!-- COMMENTS -->
+    <h2 id="comments">{{ 'Commentaires' if lang == 'fr' else 'Comments' }}</h2>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>{{ 'commentaire' if lang == 'fr' else 'comment' }}</span></div>
+      <pre><code><span class="c-grey">({&lt;{{ 'Ceci est un commentaire ignoré par le parser' if lang == 'fr' else 'This is a comment ignored by the parser' }}&gt;})</span></code></pre>
+    </div>
+
+    <!-- SHELL INSTALL -->
+    <h2 id="shell-install">{{ 'Installation du shell' if lang == 'fr' else 'Shell installation' }}</h2>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>bash</span></div>
+      <pre><code><span class="c-grey"># {{ 'Télécharge les fichiers puis :' if lang == 'fr' else 'Download the files then:' }}</span>
+<span class="c-green">$</span> bash build.sh
+
+<span class="c-grey"># {{ 'Lance le shell' if lang == 'fr' else 'Launch the shell' }}</span>
+<span class="c-green">$</span> jdat-shell
+<span class="c-green">$</span> jdat-shell mon_fichier.jdat</code></pre>
+    </div>
+
+    <!-- SHELL COMMANDS -->
+    <h2 id="shell-commands">{{ 'Commandes du shell' if lang == 'fr' else 'Shell commands' }}</h2>
+    <div class="cmd-grid">
+      <div class="cmd-card"><div class="cmd-name">list / ls</div><div class="cmd-desc">{{ 'Liste tous les blocs' if lang == 'fr' else 'List all blocks' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">read [lien]</div><div class="cmd-desc">{{ 'Affiche un bloc' if lang == 'fr' else 'Display a block' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">find &lt;texte&gt;</div><div class="cmd-desc">{{ 'Recherche dans les noms/liens' if lang == 'fr' else 'Search names/links' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">add</div><div class="cmd-desc">{{ 'Ajoute un bloc (assistant)' if lang == 'fr' else 'Add a block (wizard)' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">edit [lien]</div><div class="cmd-desc">{{ 'Modifie un bloc' if lang == 'fr' else 'Edit a block' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">del [lien]</div><div class="cmd-desc">{{ 'Supprime un bloc' if lang == 'fr' else 'Delete a block' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">enc [lien]</div><div class="cmd-desc">{{ 'Chiffre un bloc' if lang == 'fr' else 'Encrypt a block' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">dec [lien]</div><div class="cmd-desc">{{ 'Déchiffre un bloc' if lang == 'fr' else 'Decrypt a block' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">open &lt;fichier&gt;</div><div class="cmd-desc">{{ 'Ouvre un fichier' if lang == 'fr' else 'Open a file' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">new &lt;fichier&gt;</div><div class="cmd-desc">{{ 'Crée un fichier' if lang == 'fr' else 'Create a file' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">save [fichier]</div><div class="cmd-desc">{{ 'Sauvegarde' if lang == 'fr' else 'Save' }}</div></div>
+      <div class="cmd-card"><div class="cmd-name">help</div><div class="cmd-desc">{{ 'Affiche l\'aide' if lang == 'fr' else 'Show help' }}</div></div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <h2 id="shell-nav">{{ 'Navigation avec goto' if lang == 'fr' else 'Navigation with goto' }}</h2>
+    <p>{{ 'goto fonctionne comme cd dans un terminal. Une fois dans un bloc, toutes les commandes sans argument opèrent sur le bloc courant.' if lang == 'fr' else 'goto works like cd in a terminal. Once inside a block, all commands without argument operate on the current block.' }}</p>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>{{ 'navigation' if lang == 'fr' else 'navigation' }}</span></div>
+      <pre><code><span class="c-grey"># {{ 'Entre dans un bloc' if lang == 'fr' else 'Enter a block' }}</span>
+jdat(exemple.jdat) > <span class="c-green">goto lien</span>
+jdat(exemple.jdat) → lien > <span class="c-grey">← {{ 'prompt change' if lang == 'fr' else 'prompt changes' }}</span>
+
+<span class="c-grey"># {{ 'Commandes sans argument = bloc courant' if lang == 'fr' else 'Commands without argument = current block' }}</span>
+jdat(exemple.jdat) → lien > <span class="c-green">read</span>
+jdat(exemple.jdat) → lien > <span class="c-green">enc</span>
+jdat(exemple.jdat) → lien > <span class="c-green">edit</span>
+
+<span class="c-grey"># {{ 'Retour à la racine' if lang == 'fr' else 'Back to root' }}</span>
+jdat(exemple.jdat) → lien > <span class="c-green">back</span>
+jdat(exemple.jdat) → lien > <span class="c-green">..</span>
+jdat(exemple.jdat) → lien > <span class="c-green">goto ..</span>
+
+<span class="c-grey"># {{ 'Affiche le bloc courant' if lang == 'fr' else 'Display current block' }}</span>
+jdat(exemple.jdat) → lien > <span class="c-green">pwd</span></code></pre>
+    </div>
+
+    <!-- CRYPTO -->
+    <h2 id="crypto">{{ 'Chiffrement AES-256-GCM' if lang == 'fr' else 'AES-256-GCM Encryption' }}</h2>
+    <p>{% if lang == 'fr' %}Chaque bloc peut être chiffré indépendamment. JDAT utilise AES-256-GCM (mode authentifié), ce qui garantit à la fois la confidentialité et l'intégrité des données.{% else %}Each block can be encrypted independently. JDAT uses AES-256-GCM (authenticated mode), which guarantees both confidentiality and data integrity.{% endif %}</p>
+    <table class="param-table">
+      <tr><th>{{ 'Propriété' if lang == 'fr' else 'Property' }}</th><th>{{ 'Valeur' if lang == 'fr' else 'Value' }}</th></tr>
+      <tr><td>{{ 'Algorithme' if lang == 'fr' else 'Algorithm' }}</td><td>AES-256-GCM</td></tr>
+      <tr><td>{{ 'Dérivation de clé' if lang == 'fr' else 'Key derivation' }}</td><td>SHA-256(password + salt)</td></tr>
+      <tr><td>Salt</td><td>16 bytes {{ 'aléatoires' if lang == 'fr' else 'random' }}</td></tr>
+      <tr><td>Nonce</td><td>12 bytes {{ 'aléatoires' if lang == 'fr' else 'random' }}</td></tr>
+      <tr><td>{{ 'Encodage' if lang == 'fr' else 'Encoding' }}</td><td>Base64 (salt + nonce + ciphertext)</td></tr>
+    </table>
+    <div class="note">
+      <strong>{{ 'Authentification :' if lang == 'fr' else 'Authentication:' }}</strong>
+      {% if lang == 'fr' %}GCM inclut un tag d'authentification — toute modification du contenu chiffré est détectée automatiquement.
+      {% else %}GCM includes an authentication tag — any modification of encrypted content is detected automatically.{% endif %}
+    </div>
+
+    <!-- CRYPTO USAGE -->
+    <h2 id="crypto-usage">{{ 'Utilisation du chiffrement' if lang == 'fr' else 'Using encryption' }}</h2>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>shell</span></div>
+      <pre><code><span class="c-grey"># {{ 'Chiffre le bloc "lien"' if lang == 'fr' else 'Encrypt the "lien" block' }}</span>
+jdat > <span class="c-green">enc lien</span>
+  Mot de passe > <span class="c-yellow">****</span>
+  Confirmer    > <span class="c-yellow">****</span>
+  ✓ Bloc 'lien' chiffré avec AES-256-GCM
+
+<span class="c-grey"># {{ 'Déchiffre' if lang == 'fr' else 'Decrypt' }}</span>
+jdat > <span class="c-green">dec lien</span>
+  Mot de passe > <span class="c-yellow">****</span>
+  ✓ Bloc 'lien' déchiffré
+
+<span class="c-grey"># {{ 'Si tu es dans le bloc (goto), sans argument' if lang == 'fr' else 'If you are in the block (goto), no argument needed' }}</span>
+jdat → lien > <span class="c-green">enc</span></code></pre>
+    </div>
+
+    <!-- PYTHON API -->
+    <h2 id="python-load">Python API — load / save</h2>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>python</span></div>
+      <pre><code><span class="c-green">from</span> jdat <span class="c-green">import</span> JDATFile
+
+<span class="c-grey"># {{ 'Charger' if lang == 'fr' else 'Load' }}</span>
+jf = JDATFile(<span class="c-yellow">"data.jdat"</span>).load()
+
+<span class="c-grey"># {{ 'Sauvegarder' if lang == 'fr' else 'Save' }}</span>
+jf.save()
+jf.save(<span class="c-yellow">"autre.jdat"</span>)  <span class="c-grey"># {{ 'nouveau chemin' if lang == 'fr' else 'new path' }}</span></code></pre>
+    </div>
+
+    <h2 id="python-read">Python API — {{ 'Lecture' if lang == 'fr' else 'Reading' }}</h2>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>python</span></div>
+      <pre><code><span class="c-grey"># {{ 'Accès par lien ou nom' if lang == 'fr' else 'Access by link or name' }}</span>
+bloc = jf.get_by_link(<span class="c-yellow">"lien"</span>)
+bloc = jf.get_by_name(<span class="c-yellow">"bob"</span>)
+
+<span class="c-grey"># {{ 'Lire une clé (t:1)' if lang == 'fr' else 'Read a key (t:1)' }}</span>
+email = bloc.get(<span class="c-yellow">"adresse mail"</span>)
+email = bloc.get(<span class="c-yellow">"adresse mail"</span>, <span class="c-yellow">"défaut"</span>)
+
+<span class="c-grey"># {{ 'Toutes les données' if lang == 'fr' else 'All data' }}</span>
+data = bloc.parse_data()  <span class="c-grey"># → dict</span>
+
+<span class="c-grey"># {{ 'Lister tous les blocs' if lang == 'fr' else 'List all blocks' }}</span>
+blocs = jf.list_blocks()  <span class="c-grey"># → list of dicts</span></code></pre>
+    </div>
+
+    <h2 id="python-write">Python API — {{ 'Écriture' if lang == 'fr' else 'Writing' }}</h2>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>python</span></div>
+      <pre><code><span class="c-grey"># {{ 'Modifier une clé' if lang == 'fr' else 'Edit a key' }}</span>
+bloc.set(<span class="c-yellow">"nom"</span>, <span class="c-yellow">"alice"</span>)
+
+<span class="c-grey"># {{ 'Ajouter un bloc' if lang == 'fr' else 'Add a block' }}</span>
+jf.add_block(<span class="c-yellow">"alice"</span>, <span class="c-yellow">"alice1"</span>, <span class="c-yellow">1</span>, <span class="c-yellow">"  nom: alice\n  mail: alice@ex.com"</span>)
+
+<span class="c-grey"># {{ 'Supprimer' if lang == 'fr' else 'Delete' }}</span>
+jf.remove_block(<span class="c-yellow">"alice1"</span>)  <span class="c-grey"># {{ 'par lien' if lang == 'fr' else 'by link' }}</span></code></pre>
+    </div>
+
+    <h2 id="python-crypto">Python API — {{ 'Chiffrement' if lang == 'fr' else 'Encryption' }}</h2>
+    <div class="code-block">
+      <div class="code-block-header"><div class="dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div><span>python</span></div>
+      <pre><code><span class="c-grey"># {{ 'Chiffrer' if lang == 'fr' else 'Encrypt' }}</span>
+jf.encrypt_block(<span class="c-yellow">"lien"</span>, <span class="c-yellow">"mon_mot_de_passe"</span>)
+
+<span class="c-grey"># {{ 'Déchiffrer' if lang == 'fr' else 'Decrypt' }}</span>
+jf.decrypt_block(<span class="c-yellow">"lien"</span>, <span class="c-yellow">"mon_mot_de_passe"</span>)
+
+<span class="c-grey"># {{ 'Vérifier l\'état' if lang == 'fr' else 'Check state' }}</span>
+bloc = jf.get_by_link(<span class="c-yellow">"lien"</span>)
+<span class="c-green">print</span>(bloc.encrypted)  <span class="c-grey"># True / False</span></code></pre>
+    </div>
+
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}JDAT{% endblock %}</title>
+  <meta name="description" content="{% block meta_desc %}JDAT — Format de données structurées avec chiffrement AES-256{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET & BASE ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0c0e;
+      --bg2:       #0f1214;
+      --bg3:       #141820;
+      --border:    #1e2530;
+      --cyan:      #00e5cc;
+      --cyan-dim:  #00b09a;
+      --green:     #39ff6e;
+      --green-dim: #22c955;
+      --grey:      #4a5568;
+      --grey2:     #2d3748;
+      --text:      #c8d6e8;
+      --text-dim:  #718096;
+      --red:       #ff4757;
+      --yellow:    #ffd32a;
+      --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* scanline effect */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,229,204,0.015) 2px,
+        rgba(0,229,204,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── NAV ──────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,12,14,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .nav-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-logo span { color: var(--green); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover,
+    .nav-links a.active { color: var(--cyan); }
+
+    .nav-lang {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .nav-lang a {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .nav-lang a.active,
+    .nav-lang a:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* ── LAYOUT ───────────────────────────────────────── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ── PROMPT CURSOR ────────────────────────────────── */
+    .prompt { color: var(--green); }
+    .prompt::before { content: '$ '; }
+
+    /* ── BUTTONS ──────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--bg);
+    }
+    .btn-primary:hover {
+      background: var(--cyan-dim);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(0,229,204,0.3);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+    .btn-outline:hover {
+      background: rgba(0,229,204,0.08);
+      transform: translateY(-1px);
+    }
+
+    /* ── CODE BLOCKS ──────────────────────────────────── */
+    .code-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+    .code-block-header {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+    .code-block-header .dots {
+      display: flex;
+      gap: 6px;
+    }
+    .code-block-header .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green  { background: #28c840; }
+    .code-block pre {
+      padding: 1.2rem 1.5rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+    .code-block code { font-family: inherit; }
+
+    /* syntax colors */
+    .c-cyan    { color: var(--cyan); }
+    .c-green   { color: var(--green); }
+    .c-yellow  { color: var(--yellow); }
+    .c-grey    { color: var(--text-dim); }
+    .c-red     { color: var(--red); }
+    .c-text    { color: var(--text); }
+
+    /* ── CARDS ────────────────────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      margin-top: 6rem;
+    }
+    footer a { color: var(--cyan); text-decoration: none; }
+
+    /* ── ANIMATIONS ───────────────────────────────────── */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes glow {
+      0%,100% { text-shadow: 0 0 10px rgba(0,229,204,0.5); }
+      50%     { text-shadow: 0 0 30px rgba(0,229,204,0.9), 0 0 60px rgba(0,229,204,0.4); }
+    }
+
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    .delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .delay-3 { animation-delay: 0.3s; opacity: 0; }
+    .delay-4 { animation-delay: 0.4s; opacity: 0; }
+
+    /* ── RESPONSIVE ───────────────────────────────────── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .container { padding: 0 1rem; }
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="{{ '/' if lang == 'fr' else '/en' }}">
+    <span>[</span>JDAT<span>]</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="{{ '/' if lang == 'fr' else '/en' }}" class="{{ 'active' if request.path in ('/', '/en') }}">
+      {{ 'Accueil' if lang == 'fr' else 'Home' }}
+    </a></li>
+    <li><a href="{{ '/docs' if lang == 'fr' else '/en/docs' }}" class="{{ 'active' if 'docs' in request.path }}">
+      Docs
+    </a></li>
+    <li><a href="{{ '/download' if lang == 'fr' else '/en/download' }}" class="{{ 'active' if 'download' in request.path }}">
+      {{ 'Télécharger' if lang == 'fr' else 'Download' }}
+    </a></li>
+  </ul>
+  <div class="nav-lang">
+    <a href="{{ request.path.replace('/en', '') or '/' }}" class="{{ 'active' if lang == 'fr' }}">FR</a>
+    <a href="{{ '/en' + (request.path if not request.path.startswith('/en') else request.path[3:] or '/') }}" class="{{ 'active' if lang == 'en' }}">EN</a>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<footer>
+  <div class="container">
+    <p>JDAT &mdash; {{ 'Format de données structurées + AES-256' if lang == 'fr' else 'Structured data format + AES-256' }} &mdash;
+    <a href="https://github.com" target="_blank">GitHub</a></p>
+    <p style="margin-top:0.5rem; font-size:0.75rem; color:#2d3748;">
+      {{ 'Fait avec ♥ et du terminal' if lang == 'fr' else 'Made with ♥ and a terminal' }}
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
