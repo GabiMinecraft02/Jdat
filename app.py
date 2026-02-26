@@ -41,6 +41,14 @@ def serve_file(filename):
 def robots():
     return send_from_directory(".", "robots.txt")
 
+@app.route("/sitemap.xml")
+def robots():
+    return send_from_directory(".", "sitemap.xml")
+
+@app.route("/googlea128813747473c36.html")
+def robots():
+    return send_from_directory(".", "googlea128813747473c36.html")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
