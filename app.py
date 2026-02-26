@@ -42,11 +42,11 @@ def robots():
     return send_from_directory(".", "robots.txt")
 
 @app.route("/sitemap.xml")
-def robots():
+def sitemap():
     return send_from_directory(".", "sitemap.xml")
 
 @app.route("/googlea128813747473c36.html")
-def robots():
+def google():
     return send_from_directory(".", "googlea128813747473c36.html")
 
 if __name__ == "__main__":
